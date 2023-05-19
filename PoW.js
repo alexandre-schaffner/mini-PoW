@@ -1,26 +1,43 @@
 const { createHash } = require('crypto')
 
-let hash = createHash('sha256')
-let data = "Alex"
+// Init genesis block
+//--------------------------------------------------------------------------
+let data = { tx: "Genesis block", nonce: 0, difficulty: 1, hash: '', prevHash: '' }
 
-hash.update(data)
-console.log("----------------------------------------------------------------")
+console.log("Genesis block:", data)
+
+// String containing as much 0's as the difficulty
+//--------------------------------------------------------------------------
+let lvlString = ""
+
+let hash = createHash('sha256')
+hash.update(JSON.stringify(data))
+
 for (let lvl = 1; true; lvl++) {
-    let lvlString = ""
-    let nonce = 0
-    console.log("Data:", data)
-    console.log("0 bits: ", lvl)
-    for (let i = 0; i < lvl; i++) {
-        lvlString = lvlString + "0"
+    // Setting nonce, difficulty & previous hash
+    //--------------------------------------------------------------------------
+    data.nonce = 0
+    data.prevHash = data.hash
+    data.hash = ''
+    data.difficulty = lvl
+    data.tx = data.difficulty > 1 ? "Block " + lvl : "Genesis block"
+
+    // Filling lvlString with 0's
+    //--------------------------------------------------------------------------
+    lvlString = new Array(lvl + 1).join('0')
+
+
+    // Searching a valid hash
+    //--------------------------------------------------------------------------
+    console.log("\nMining...\n")
+    while (data.hash.substr(0, lvl) !== lvlString) {
+        data.nonce += 1
+        data.hash = hash.copy().digest('hex')
+        hash.update(JSON.stringify(data), 'utf-8')
     }
-    console.log("Mining...\n")
-    while (hash.copy().digest('hex').substr(0, lvl) !== lvlString) {
-        hash = createHash('sha256')
-        nonce += 1
-        hash.update(data + nonce, 'utf-8')
-    }
-    console.log("One solution:", data + nonce)
-    data = hash.copy().digest('hex')
-    console.log("Hash:", data, "\nNonce value:", nonce)
-    console.log("----------------------------------------------------------------\n")
+
+    // Logging
+    //--------------------------------------------------------------------------
+    console.log("Block:", data)
+    console.log("\n------------------------------------------------------------------------------")
 }
