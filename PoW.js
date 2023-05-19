@@ -2,42 +2,75 @@ const { createHash } = require('crypto')
 
 // Init genesis block
 //--------------------------------------------------------------------------
-let data = { tx: "Genesis block", nonce: 0, difficulty: 1, hash: '', prevHash: '' }
+// let block = {
+//   header: {
+//     number: 0,
+//     difficulty: 5,
+//     nonce: 0,
+//     hash: '',
+//     prevHash: ''
+//   },
+//   data: "Genesis block"
+// }
 
-console.log("Genesis block:", data)
+// Fraudulent block
+//--------------------------------------------------------------------------
+let block = {
+  header: {
+    number: 3,
+    difficulty: 5,
+    nonce: 0,
+    hash: '',
+    prevHash: '00000833199e88fbb299de42946422c09a2619efe43614036896dc3ac1e3acaf'
+  },
+  data: '😈 Fraudulent data'
+}
+
+console.log(
+  'Genesis block:',
+  block,
+  "\n\n--------------------------------------------------------------------------------")
 
 // String containing as much 0's as the difficulty
 //--------------------------------------------------------------------------
 let lvlString = ""
 
 let hash = createHash('sha256')
-hash.update(JSON.stringify(data))
+hash.update(JSON.stringify(block))
 
-for (let lvl = 1; true; lvl++) {
-    // Setting nonce, difficulty & previous hash
-    //--------------------------------------------------------------------------
-    data.nonce = 0
-    data.prevHash = data.hash
-    data.hash = ''
-    data.difficulty = lvl
-    data.tx = data.difficulty > 1 ? "Block " + lvl : "Genesis block"
+while (true) {
 
-    // Filling lvlString with 0's
-    //--------------------------------------------------------------------------
-    lvlString = new Array(lvl + 1).join('0')
+  // Filling lvlString with 0's
+  //--------------------------------------------------------------------------
+  lvlString = new Array(block.header.difficulty + 1).join('0')
 
+  // Searching a valid hash
+  //--------------------------------------------------------------------------
+  console.log("\n⛏️ Mining...\n")
+  while (block.header.hash.substr(0, block.header.difficulty) !== lvlString) {
+    block.header.nonce += 1
+    block.header.hash = hash.copy().digest('hex')
+    hash.update(JSON.stringify(block), 'utf-8')
+  }
 
-    // Searching a valid hash
-    //--------------------------------------------------------------------------
-    console.log("\nMining...\n")
-    while (data.hash.substr(0, lvl) !== lvlString) {
-        data.nonce += 1
-        data.hash = hash.copy().digest('hex')
-        hash.update(JSON.stringify(data), 'utf-8')
-    }
+  // Logging
+  //--------------------------------------------------------------------------
+  console.log(`🎉 Block #${block.header.number} mined !`)
+  console.log('Block: ', block)
+  console.log("\n------------------------------------------------------------------------------")
 
-    // Logging
-    //--------------------------------------------------------------------------
-    console.log("Block:", data)
-    console.log("\n------------------------------------------------------------------------------")
+  // Setting block for next iteration
+  //--------------------------------------------------------------------------
+  block.header.number++;
+  block.header.nonce = 0
+  block.header.prevHash = block.header.hash !== ''
+    ? block.header.hash
+    : block.header.prevHash;
+  block.header.hash = '';
+  block.header.difficulty = block.header.number % 5
+    ? block.header.difficulty
+    : block.header.difficulty + 1;
+  block.data = block.header.difficulty > 1
+    ? "Block " + block.header.number
+    : "Genesis block";
 }
