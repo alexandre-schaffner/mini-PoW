@@ -1,30 +1,28 @@
-const { createHash } = require('crypto')
-
 // Init genesis block
 //--------------------------------------------------------------------------
-// let block = {
-//   header: {
-//     number: 0,
-//     difficulty: 5,
-//     nonce: 0,
-//     hash: '',
-//     prevHash: ''
-//   },
-//   data: "Genesis block"
-// }
-
-// Fraudulent block
-//--------------------------------------------------------------------------
-let block = {
+const block = {
   header: {
-    number: 3,
+    number: 0,
     difficulty: 5,
     nonce: 0,
     hash: '',
-    prevHash: '00000833199e88fbb299de42946422c09a2619efe43614036896dc3ac1e3acaf'
+    prevHash: ''
   },
-  data: '😈 Fraudulent data'
+  data: "Genesis block"
 }
+
+// Fraudulent block
+//--------------------------------------------------------------------------
+// let block = {
+//   header: {
+//     number: 3,
+//     difficulty: 5,
+//     nonce: 0,
+//     hash: '',
+//     prevHash: '00000833199e88fbb299de42946422c09a2619efe43614036896dc3ac1e3acaf'
+//   },
+//   data: '😈 Fraudulent data'
+// }
 
 console.log(
   'Genesis block:',
@@ -35,8 +33,8 @@ console.log(
 //--------------------------------------------------------------------------
 let lvlString = ""
 
-let hash = createHash('sha256')
-hash.update(JSON.stringify(block))
+const hasher = new Bun.CryptoHasher("sha256");
+hasher.update(JSON.stringify(block))
 
 while (true) {
 
@@ -49,8 +47,8 @@ while (true) {
   console.log("\n⛏️ Mining...\n")
   while (block.header.hash.substr(0, block.header.difficulty) !== lvlString) {
     block.header.nonce += 1
-    block.header.hash = hash.copy().digest('hex')
-    hash.update(JSON.stringify(block), 'utf-8')
+    block.header.hash = hasher.copy().digest('hex')
+    hasher.update(JSON.stringify(block), 'utf-8')
   }
 
   // Logging
@@ -71,6 +69,6 @@ while (true) {
     ? block.header.difficulty
     : block.header.difficulty + 1;
   block.data = block.header.difficulty > 1
-    ? "Block " + block.header.number
+    ? `Block ${block.header.number}`
     : "Genesis block";
 }
